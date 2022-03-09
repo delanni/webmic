@@ -17,7 +17,7 @@
             navigator.mozGetUserMedia ||
             navigator.msGetUserMedia);
 
-        var getMicrophoneInput = function () {
+        var getMicrophoneInput = function (onStream, onStreamError) {
             var isLocalhost = window.location.hostname == 'localhost' ||
                 window.location.hostname == '127.0.0.1';
             if (window.location.protocol != 'https:' && !isLocalhost) {
@@ -26,23 +26,18 @@
             navigator.getUserMedia({ audio: true }, onStream, onStreamError);
         };
 
-        function onStream(stream) {
-            console.log("Stream started", stream);
-            var input = context.createMediaStreamSource(stream);
-            input.connect(context.destination);
-
-        };
-
-        function onStreamError(e) {
-            console.error('Error getting microphone', e);
-        };
-
         function start() {
             // Start off by initializing a new context.
             var context = new window.AudioContext();
 
             context.resume().then(() => {
-                getMicrophoneInput();
+                getMicrophoneInput((stream) => {
+                    console.log("Stream started", stream);
+                    var input = context.createMediaStreamSource(stream);
+                    input.connect(context.destination);
+                }, (e) => {
+                    console.error('Error getting microphone', e);
+                });
             });
         }
 
